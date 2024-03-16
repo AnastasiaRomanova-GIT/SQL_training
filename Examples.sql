@@ -170,3 +170,12 @@ WHERE title IS NULL
 SELECT name_city, name_author, DATE_ADD('2020-01-01', INTERVAL FLOOR(RAND()*365) DAY) AS Дата
 FROM city, author
 ORDER BY name_city, Дата DESC
+
+
+/*Вывести в алфавитном порядке всех авторов, которые пишут только в одном жанре. Поскольку у нас в таблицах так занесены данные, что у каждого автора книги только в одном жанре,  для этого запроса внесем изменения в таблицу book. Пусть у нас  книга Есенина «Черный человек» относится к жанру «Роман», а книга Булгакова «Белая гвардия» к «Приключениям» (эти изменения в таблицы уже внесены).*/
+SELECT name_author
+FROM book INNER JOIN author
+    ON book.author_id = author.author_id
+GROUP BY name_author
+HAVING COUNT(DISTINCT genre_id) = 1
+ORDER BY name_author
