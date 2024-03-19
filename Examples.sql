@@ -189,6 +189,14 @@ FROM author LEFT JOIN book
     ORDER BY Количество
 
 
+/*Вывести в алфавитном порядке всех авторов, которые пишут только в одном жанре. Поскольку у нас в таблицах так занесены данные, что у каждого автора книги только в одном жанре,  для этого запроса внесем изменения в таблицу book. Пусть у нас  книга Есенина «Черный человек» относится к жанру «Роман», а книга Булгакова «Белая гвардия» к «Приключениям» (эти изменения в таблицы уже внесены).*/
+SELECT name_author
+FROM book INNER JOIN author
+    ON book.author_id = author.author_id
+GROUP BY name_author
+HAVING COUNT(DISTINCT genre_id) = 1
+ORDER BY name_author
+
 /*Вывести информацию о книгах (название книги, фамилию и инициалы автора, название жанра, цену и количество экземпляров книг), написанных в самых популярных жанрах, в отсортированном в алфавитном порядке по названию книг виде. Самым популярным считать жанр, общее количество экземпляров книг которого на складе максимально.*/
 SELECT title, name_author, name_genre, price, amount
 FROM 
@@ -211,4 +219,14 @@ WHERE genre.genre_id IN
           ON query_in_1.sum_amount = query_in_2.sum_amount)
 
 ORDER BY title
-;
+
+
+/*Если в таблицах supply  и book есть одинаковые книги, которые имеют равную цену,  вывести их название и автора, а также посчитать общее количество экземпляров книг в таблицах supply и book,  столбцы назвать Название, Автор  и Количество.*/
+SELECT book.title AS Название, name_author AS Автор, (book.amount + supply.amount) AS Количество
+FROM 
+    author
+    INNER JOIN book USING(author_id)
+    INNER JOIN supply ON author.name_author = supply.author
+                      AND book.title = supply.title
+
+WHERE book.amount = supply.amount
