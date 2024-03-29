@@ -325,3 +325,12 @@ WHERE genre_id IN
 SELECT * FROM genre;
 
 SELECT * FROM book;
+
+/*Посчитать, сколько раз была заказана каждая книга, для книги вывести ее автора (нужно посчитать, в каком количестве заказов фигурирует каждая книга).  Вывести фамилию и инициалы автора, название книги, последний столбец назвать Количество. Результат отсортировать сначала  по фамилиям авторов, а потом по названиям книг.*/
+SELECT author.name_author, book.title, COUNT(buy_book.amount) AS Количество
+FROM book
+    INNER JOIN author ON book.author_id = author.author_id
+    LEFT JOIN buy_book ON buy_book.book_id = book.book_id
+GROUP BY author.name_author, book.title, buy_book.book_id
+ORDER BY author.name_author, book.title
+
