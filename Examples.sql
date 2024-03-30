@@ -327,6 +327,7 @@ SELECT * FROM genre;
 SELECT * FROM book;
 
 
+
 /*Вывести все заказы Баранова Павла (id заказа, какие книги, по какой цене и в каком количестве он заказал) в отсортированном по номеру заказа и названиям книг виде.*/
 SELECT DISTINCT buy.buy_id, book.title, book.price, buy_book.amount
 FROM 
@@ -350,3 +351,14 @@ SELECT buy_id, date_step_end
 FROM buy_step
     INNER JOIN step ON buy_step.step_id = step.step_id
 WHERE buy_step.step_id = 1 AND buy_step.date_step_end IS NOT NULL 
+
+
+/*Посчитать, сколько раз была заказана каждая книга, для книги вывести ее автора (нужно посчитать, в каком количестве заказов фигурирует каждая книга).  Вывести фамилию и инициалы автора, название книги, последний столбец назвать Количество. Результат отсортировать сначала  по фамилиям авторов, а потом по названиям книг.*/
+SELECT author.name_author, book.title, COUNT(buy_book.amount) AS Количество
+FROM book
+    INNER JOIN author ON book.author_id = author.author_id
+    LEFT JOIN buy_book ON buy_book.book_id = book.book_id
+GROUP BY author.name_author, book.title, buy_book.book_id
+ORDER BY author.name_author, book.title
+
+
