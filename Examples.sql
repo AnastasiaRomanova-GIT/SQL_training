@@ -373,3 +373,21 @@ GROUP BY client.name_client
 ORDER BY client.name_client
 
 
+/*Вывести информацию о каждом заказе: его номер, кто его сформировал (фамилия пользователя) и его стоимость (сумма произведений количества заказанных книг и их цены), в отсортированном по номеру заказа виде. Последний столбец назвать Стоимость.*/
+SELECT buy_book.buy_id, name_client, SUM(buy_book.amount * book.price) AS Стоимость
+FROM book
+    INNER JOIN buy_book ON book.book_id = buy_book.book_id
+    INNER JOIN buy ON buy.buy_id = buy_book.buy_id
+    INNER JOIN client ON buy.client_id = client.client_id
+GROUP BY buy_book.buy_id
+ORDER BY buy_id 
+
+/*В таблице city для каждого города указано количество дней, за которые заказ может быть доставлен в этот город (рассматривается только этап "Транспортировка"). Для тех заказов, которые прошли этап транспортировки, вывести количество дней за которое заказ реально доставлен в город. А также, если заказ доставлен с опозданием, указать количество дней задержки, в противном случае вывести 0. В результат включить номер заказа (buy_id), а также вычисляемые столбцы Количество_дней и Опоздание. Информацию вывести в отсортированном по номеру заказа виде*/
+SELECT buy_step.buy_id, DATEDIFF(buy_step.date_step_end, buy_step.date_step_beg) AS Количество_дней,         IF(DATEDIFF(buy_step.date_step_end, buy_step.date_step_beg) >= city.days_delivery, DATEDIFF(buy_step.date_step_end, buy_step.date_step_beg) - city.days_delivery, 0) AS Опоздание
+FROM buy_step 
+    INNER JOIN step ON buy_step.step_id = step.step_id
+    INNER JOIN buy ON buy_step.buy_id = buy.buy_id
+    INNER JOIN client ON buy.client_id = client.client_id
+    INNER JOIN city ON client.city_id = city.city_id
+WHERE step.name_step = "Транспортировка" AND buy_step.date_step_beg IS NOT NULL AND buy_step.date_step_end IS NOT NULL
+ORDER BY buy_step.buy_id
