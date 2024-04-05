@@ -361,6 +361,17 @@ FROM book
 GROUP BY author.name_author, book.title, buy_book.book_id
 ORDER BY author.name_author, book.title
 
+/*Выбрать всех клиентов, которые заказывали книги Достоевского, информацию вывести в отсортированном по алфавиту виде. В решении используйте фамилию автора, а не его id.*/
+SELECT name_client
+FROM client
+    INNER JOIN buy ON client.client_id = buy.client_id
+    INNER JOIN buy_book ON buy.buy_id = buy_book.buy_id
+    INNER JOIN book ON buy_book.book_id = book.book_id
+    INNER JOIN author ON book.author_id = author.author_id
+WHERE author.name_author LIKE "%Достоевский%"
+GROUP BY client.name_client
+ORDER BY client.name_client
+
 
 /*Вывести информацию о каждом заказе: его номер, кто его сформировал (фамилия пользователя) и его стоимость (сумма произведений количества заказанных книг и их цены), в отсортированном по номеру заказа виде. Последний столбец назвать Стоимость.*/
 SELECT buy_book.buy_id, name_client, SUM(buy_book.amount * book.price) AS Стоимость
