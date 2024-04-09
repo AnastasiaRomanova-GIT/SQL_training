@@ -391,3 +391,39 @@ FROM buy_step
     INNER JOIN city ON client.city_id = city.city_id
 WHERE step.name_step = "Транспортировка" AND buy_step.date_step_beg IS NOT NULL AND buy_step.date_step_end IS NOT NULL
 ORDER BY buy_step.buy_id
+
+/*Включить нового человека в таблицу с клиентами. Его имя Попов Илья, его email popov@test, проживает он в Москве.*/
+INSERT INTO client (name_client, city_id, email)
+SELECT 'Попов Илья', city_id, 'popov@test'
+FROM city 
+WHERE name_city LIKE '%осква'
+;
+SELECT * FROM client
+;
+
+/*Создать новый заказ для Попова Ильи. Его комментарий для заказа: «Связаться со мной по вопросу доставки».
+Важно! В решении нельзя использоваться VALUES и делать отбор по client_id*/
+INSERT INTO buy (buy_description, client_id)
+SELECT 'Связаться со мной по вопросу доставки', client_id
+FROM client 
+WHERE name_client = "Попов Илья"
+;
+SELECT * FROM buy
+
+/*В таблицу buy_book добавить заказ с номером 5. Этот заказ должен содержать книгу Пастернака «Лирика» в количестве двух экземпляров и книгу Булгакова «Белая гвардия» в одном экземпляре.*/
+INSERT INTO buy_book (buy_id, book_id, amount)
+(
+    SELECT '5', book.book_id, '2'
+    FROM book 
+        INNER JOIN author ON book.author_id = author.author_id
+    WHERE book.title = "Лирика" AND author.name_author LIKE "%Пастернак%"
+
+    UNION
+
+    SELECT '5', book.book_id, '1'
+    FROM book 
+        INNER JOIN author ON book.author_id = author.author_id
+    WHERE book.title = "Белая гвардия" AND author.name_author LIKE "%Булгаков%"
+);
+
+SELECT * FROM buy_book;
