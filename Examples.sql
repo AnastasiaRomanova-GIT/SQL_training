@@ -463,3 +463,25 @@ WHERE buy_book.buy_id = 5
 ;
 
 SELECT * FROM book
+
+/*Создать общий счет (таблицу buy_pay) на оплату заказа с номером 5. Куда включить номер заказа, количество книг в заказе (название столбца Количество) и его общую стоимость (название столбца Итого).  Для решения используйте ОДИН запрос./*
+CREATE TABLE buy_pay AS
+    SELECT buy_book.buy_id, SUM(buy_book.amount) AS Количество, SUM(buy_book.amount * book.price) AS Итого
+    FROM book
+        INNER JOIN buy_book ON book.book_id = buy_book.book_id
+    WHERE buy_book.buy_id = 5
+    GROUP BY buy_book.buy_id
+    ;
+
+SELECT * FROM buy_pay
+
+
+/*Если студент совершал несколько попыток по одной и той же дисциплине, то вывести разницу в днях между первой и последней попыткой. В результат включить фамилию и имя студента, название дисциплины и вычисляемый столбец Интервал. Информацию вывести по возрастанию разницы. Студентов, сделавших одну попытку по дисциплине, не учитывать. */
+SELECT student.name_student, subject.name_subject,  DATEDIFF(MAX(date_attempt), MIN(date_attempt)) AS Интервал
+FROM student 
+    INNER JOIN attempt ON student.student_id = attempt.student_id
+    INNER JOIN subject ON attempt.subject_id = subject.subject_id
+GROUP BY student.name_student, subject.name_subject
+HAVING (MAX(date_attempt) - MIN(date_attempt)) <> 0
+ORDER BY Интервал
+;
