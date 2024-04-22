@@ -485,3 +485,36 @@ GROUP BY student.name_student, subject.name_subject
 HAVING (MAX(date_attempt) - MIN(date_attempt)) <> 0
 ORDER BY Интервал
 ;
+
+
+/*Студенты могут тестироваться по одной или нескольким дисциплинам (не обязательно по всем). Вывести дисциплину и количество уникальных студентов (столбец назвать Количество), которые по ней проходили тестирование . Информацию отсортировать сначала по убыванию количества, а потом по названию дисциплины. В результат включить и дисциплины, тестирование по которым студенты не проходили, в этом случае указать количество студентов 0.*/
+SELECT DISTINCT subject.name_subject, COUNT(DISTINCT (attempt.student_id)) AS Количество
+FROM subject
+    LEFT JOIN attempt ON subject.subject_id = attempt.subject_id
+GROUP BY subject.name_subject
+ORDER BY Количество DESC
+
+/*Случайным образом отберите 3 вопроса по дисциплине «Основы баз данных». В результат включите столбцы question_id и name_question.*/
+SELECT question.question_id, question.name_question
+FROM question 
+    INNER JOIN subject ON question.subject_id = subject.subject_id
+WHERE subject.name_subject = "Основы баз данных"
+ORDER BY RAND()
+LIMIT 3
+
+/*Для каждого вопроса вывести процент успешных решений, то есть отношение количества верных ответов к общему количеству ответов, значение округлить до 2-х знаков после запятой. Также вывести название предмета, к которому относится вопрос, и общее количество ответов на этот вопрос. В результат включить название дисциплины, вопросы по ней (столбец назвать Вопрос), а также два вычисляемых столбца Всего_ответов и Успешность. Информацию отсортировать сначала по названию дисциплины, потом по убыванию успешности, а потом по тексту вопроса в алфавитном порядке.
+
+Поскольку тексты вопросов могут быть длинными, обрезать их 30 символов и добавить многоточие "...".*/
+SELECT 
+    subject.name_subject, 
+    CONCAT(LEFT(question.name_question, 30), "...") AS Вопрос, 
+    COUNT(answer.question_id) AS Всего_ответов, 
+    ROUND(100 * (SUM(answer.is_correct) / COUNT(answer.question_id)), 2) AS Успешность
+FROM answer
+    INNER JOIN testing ON answer.answer_id = testing.answer_id
+    INNER JOIN attempt ON testing.attempt_id = attempt.attempt_id
+    INNER JOIN subject ON attempt.subject_id = subject.subject_id     
+    INNER JOIN student ON attempt.student_id = student.student_id
+    INNER JOIN question ON testing.question_id = question.question_id
+GROUP BY subject.name_subject, question.name_question
+ORDER BY subject.name_subject ASC, Успешность DESC, Вопрос ASC;
