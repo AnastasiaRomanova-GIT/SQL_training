@@ -464,7 +464,7 @@ WHERE buy_book.buy_id = 5
 
 SELECT * FROM book
 
-/*Создать общий счет (таблицу buy_pay) на оплату заказа с номером 5. Куда включить номер заказа, количество книг в заказе (название столбца Количество) и его общую стоимость (название столбца Итого).  Для решения используйте ОДИН запрос./*
+/*Создать общий счет (таблицу buy_pay) на оплату заказа с номером 5. Куда включить номер заказа, количество книг в заказе (название столбца Количество) и его общую стоимость (название столбца Итого).  Для решения используйте ОДИН запрос.*/
 CREATE TABLE buy_pay AS
     SELECT buy_book.buy_id, SUM(buy_book.amount) AS Количество, SUM(buy_book.amount * book.price) AS Итого
     FROM book
@@ -518,3 +518,18 @@ FROM answer
     INNER JOIN question ON testing.question_id = question.question_id
 GROUP BY subject.name_subject, question.name_question
 ORDER BY subject.name_subject ASC, Успешность DESC, Вопрос ASC;
+
+/* Случайным образом выбрать три вопроса (запрос) по дисциплине, тестирование по которой собирается проходить студент, занесенный в таблицу attempt последним, и добавить их в таблицу testing.id последней попытки получить как максимальное значение id из таблицы attempt.*/
+INSERT INTO testing (question_id, attempt_id)
+SELECT question.question_id, last_attempt.attempt_id
+FROM question
+INNER JOIN (
+    SELECT subject_id, attempt_id
+    FROM attempt
+    ORDER BY attempt_id DESC
+    LIMIT 1
+) AS last_attempt ON question.subject_id = last_attempt.subject_id
+ORDER BY RAND()
+LIMIT 3;
+
+SELECT * FROM testing
