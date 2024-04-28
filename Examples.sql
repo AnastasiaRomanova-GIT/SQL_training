@@ -518,3 +518,9 @@ FROM answer
     INNER JOIN question ON testing.question_id = question.question_id
 GROUP BY subject.name_subject, question.name_question
 ORDER BY subject.name_subject ASC, Успешность DESC, Вопрос ASC;
+ /*Выведите количество абитуриентов, сдавших ЕГЭ по каждому предмету, максимальное, минимальное и среднее значение баллов по предмету ЕГЭ. Вычисляемые столбцы назвать Количество, Максимум, Минимум, Среднее. Информацию отсортировать по названию предмета в алфавитном порядке, среднее значение округлить до одного знака после запятой.*/
+ SELECT subject.name_subject, COUNT(enrollee_id) AS Количество, MAX(result) AS Максимум, MIN(result) AS Минимум, ROUND(AVG(result), 1) AS Среднее
+FROM subject 
+    INNER JOIN enrollee_subject ON subject.subject_id = enrollee_subject.subject_id
+GROUP BY subject.name_subject
+ORDER BY subject.name_subject
