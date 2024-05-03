@@ -242,6 +242,36 @@ SET book.price = ((book.amount*book.price + supply.amount*supply.price)/(book.am
     supply.amount = 0   
 WHERE book.price <> supply.price;
 
+/*Посчитать, сколько дополнительных баллов получит каждый абитуриент. Столбец с дополнительными баллами назвать Бонус. Информацию вывести в отсортированном по фамилиям виде.*/
+SELECT enrollee.name_enrollee, IF(
+        SUM(achievement.bonus) IS NULL, 0, SUM(achievement.bonus)) AS Бонус
+FROM enrollee
+    LEFT JOIN enrollee_achievement USING(enrollee_id)
+    LEFT JOIN achievement USING(achievement_id)
+GROUP BY enrollee.name_enrollee 
+ORDER BY enrollee.name_enrollee
+
+/*Выведите сколько человек подало заявление на каждую образовательную программу и конкурс на нее (число поданных заявлений деленное на количество мест по плану), округленный до 2-х знаков после запятой. В запросе вывести название факультета, к которому относится образовательная программа, название образовательной программы, план набора абитуриентов на образовательную программу (plan), количество поданных заявлений (Количество) и Конкурс. Информацию отсортировать в порядке убывания конкурса*/
+SELECT department.name_department, program.name_program, program.plan, COUNT(enrollee_id) AS Количество, ROUND((COUNT(enrollee_id)/program.plan), 2) AS Конкурс
+FROM department
+    INNER JOIN program USING(department_id)
+    INNER JOIN program_enrollee USING(program_id)
+GROUP BY department.name_department, program.name_program, program.plan
+ORDER BY Конкурс DESC
+
+/*Посчитать количество баллов каждого абитуриента на каждую образовательную программу, на которую он подал заявление, по результатам ЕГЭ. В результат включить название образовательной программы, фамилию и имя абитуриента, а также столбец с суммой баллов, который назвать itog. Информацию вывести в отсортированном сначала по образовательной программе, а потом по убыванию суммы баллов виде.
+*/
+SELECT program.name_program, enrollee.name_enrollee, SUM(enrollee_subject.result) AS itog
+FROM enrollee
+    INNER JOIN program_enrollee ON enrollee.enrollee_id = program_enrollee.enrollee_id
+    INNER JOIN program ON program_enrollee.program_id = program.program_id
+    INNER JOIN program_subject ON program.program_id = program_subject.program_id
+    INNER JOIN enrollee_subject ON program_subject.subject_id = enrollee_subject.subject_id
+                                    AND enrollee.enrollee_id = enrollee_subject.enrollee_id
+GROUP BY program.name_program, enrollee.name_enrollee
+ORDER BY program.name_program, itog DESC
+
+
 SELECT * FROM book;
 
 SELECT * FROM supply;
@@ -464,7 +494,7 @@ WHERE buy_book.buy_id = 5
 
 SELECT * FROM book
 
-/*Создать общий счет (таблицу buy_pay) на оплату заказа с номером 5. Куда включить номер заказа, количество книг в заказе (название столбца Количество) и его общую стоимость (название столбца Итого).  Для решения используйте ОДИН запрос./*
+/*Создать общий счет (таблицу buy_pay) на оплату заказа с номером 5. Куда включить номер заказа, количество книг в заказе (название столбца Количество) и его общую стоимость (название столбца Итого).  Для решения используйте ОДИН запрос.*/
 CREATE TABLE buy_pay AS
     SELECT buy_book.buy_id, SUM(buy_book.amount) AS Количество, SUM(buy_book.amount * book.price) AS Итого
     FROM book
@@ -518,9 +548,44 @@ FROM answer
     INNER JOIN question ON testing.question_id = question.question_id
 GROUP BY subject.name_subject, question.name_question
 ORDER BY subject.name_subject ASC, Успешность DESC, Вопрос ASC;
+
  /*Выведите количество абитуриентов, сдавших ЕГЭ по каждому предмету, максимальное, минимальное и среднее значение баллов по предмету ЕГЭ. Вычисляемые столбцы назвать Количество, Максимум, Минимум, Среднее. Информацию отсортировать по названию предмета в алфавитном порядке, среднее значение округлить до одного знака после запятой.*/
  SELECT subject.name_subject, COUNT(enrollee_id) AS Количество, MAX(result) AS Максимум, MIN(result) AS Минимум, ROUND(AVG(result), 1) AS Среднее
 FROM subject 
     INNER JOIN enrollee_subject ON subject.subject_id = enrollee_subject.subject_id
 GROUP BY subject.name_subject
 ORDER BY subject.name_subject
+
+
+/* Случайным образом выбрать три вопроса (запрос) по дисциплине, тестирование по которой собирается проходить студент, занесенный в таблицу attempt последним, и добавить их в таблицу testing.id последней попытки получить как максимальное значение id из таблицы attempt.*/
+INSERT INTO testing (question_id, attempt_id)
+SELECT question.question_id, last_attempt.attempt_id
+FROM question
+INNER JOIN (
+    SELECT subject_id, attempt_id
+    FROM attempt
+    ORDER BY attempt_id DESC
+    LIMIT 1
+) AS last_attempt ON question.subject_id = last_attempt.subject_id
+ORDER BY RAND()
+LIMIT 3;
+
+SELECT * FROM testing
+
+
+/*
+Из таблицы applicant,  созданной на предыдущем шаге, удалить записи, если абитуриент на выбранную образовательную программу не набрал минимального балла хотя бы по одному предмету (использовать запрос из предыдущего урока).*/
+DELETE  
+FROM applicant
+WHERE (applicant.program_id, applicant.enrollee_id) in (
+    SELECT program.program_id, enrollee.enrollee_id
+    FROM enrollee
+        INNER JOIN program_enrollee ON enrollee.enrollee_id = program_enrollee.enrollee_id
+        INNER JOIN program ON program.program_id = program_enrollee.program_id
+        INNER JOIN enrollee_subject ON enrollee.enrollee_id = enrollee_subject.enrollee_id
+        INNER JOIN program_subject ON enrollee_subject.subject_id = program_subject.subject_id
+                                   AND program.program_id = program_subject.program_id
+        WHERE enrollee_subject.result < program_subject.min_result
+        ORDER BY program.program_id, enrollee.enrollee_id
+                                                        )
+;
