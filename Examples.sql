@@ -589,3 +589,17 @@ WHERE (applicant.program_id, applicant.enrollee_id) in (
         ORDER BY program.program_id, enrollee.enrollee_id
                                                         )
 ;
+
+/*Занести в столбец str_id таблицы applicant_order нумерацию абитуриентов, которая начинается с 1 для каждой образовательной программы */
+SET @num_pr := 0;
+SET @row_num := 1;
+
+UPDATE applicant_order
+SET str_id =
+    CASE
+        WHEN program_id = @num_pr THEN @row_num := @row_num + 1
+        ELSE @row_num := 1 AND @num_pr := program_id
+    END;        
+
+
+SELECT * FROM applicant_order
